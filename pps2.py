@@ -68,7 +68,7 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = False
+    DEBUG = True
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -146,7 +146,25 @@ def problem1(cnetid):
 ################################################################################
 
 def problem2(cnetid):
-    return b''
+    firstquery = make_query('twoa', 'esohlberg', '')
+    firstquery = firstquery[0:-7]
+    lastpiece = firstquery[-15:]
+    secondquery = make_query('twob', 'esohlberg', 'esohlberg')
+    firstpiece = secondquery[0:18]
+    ciphertext = firstpiece + lastpiece
+    print(len(ciphertext))
+    print(len('username=12345678911&role=student'))
+
+    thirdquery = make_query('twob', 'esohlberg', '12345678911')
+    encryptedpadding = thirdquery[-15:]
+    print('encrypted padding = ' + str(len(encryptedpadding)))
+    ciphertext = ciphertext + encryptedpadding
+    print(len('username=esohlberg&role=professor'))
+    print(len(ciphertext))
+
+    result = make_query('twoc', 'esohlberg', ciphertext)
+    print(str(result, errors = 'replace'))
+    return result
 
 
 ################################################################################

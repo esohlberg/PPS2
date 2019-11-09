@@ -1,6 +1,6 @@
 import pps2 as p
 if __name__ == "__main__":
-    p.problem1('esohlberg')
+    p.problem2('esohlberg')
 '''
     zerobyte = '\x00'
     querystring = ''
