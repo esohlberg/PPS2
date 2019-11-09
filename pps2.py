@@ -164,30 +164,33 @@ def problem2(cnetid):
 
 def problem3(cnetid):
     answerbytes = []
-    zeroquery = []
+    zeroquery = b''
     for i in range(0, 47):
-        zeroquery.append(b'\x00')
-    bytesleft = 2
+        zeroquery += b'\x00'
+    bytesleft = 37
+    queryquery = zeroquery
     while bytesleft:
         allbytecounter = 0
         savedblocks = {}
-        realblock = make_query('three', cnetid, b''.join(zeroquery))
+        realblock = make_query('three', cnetid, zeroquery)
         realblock = realblock[0:48]
+        realbyte = None
         while allbytecounter < 256:
             currtestbyte = bytes([allbytecounter])
-            freshquery = zeroquery + [currtestbyte]
-            forsavedblocks = make_query('three', cnetid, b''.join(freshquery))
+            freshquery = queryquery + currtestbyte
+            forsavedblocks = make_query('three', cnetid, freshquery)
             if forsavedblocks[0:48] == realblock:
                 realbyte = currtestbyte
                 allbytecounter = 246
             allbytecounter += 1
+        if not realbyte:
+            return
         zeroquery = zeroquery[1:]
-        zeroquery.append(realbyte)
+        queryquery = queryquery[1:]
+        queryquery += realbyte
         answerbytes.append(realbyte)
         bytesleft -= 1
     answerbytestring = b''.join(answerbytes)
-    zeroquery = b''.join(zeroquery)
-    print(zeroquery)
     print(str(answerbytestring, errors = 'replace'))
     return answerbytestring
 
