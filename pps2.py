@@ -68,7 +68,7 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = True
+    DEBUG = False
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -146,14 +146,14 @@ def problem1(cnetid):
 ################################################################################
 
 def problem2(cnetid):
-    firstquery = make_query('twoa', 'esohlberg', '')
+    firstquery = make_query('twoa', cnetid, '')
     lastpiece = firstquery[-16:]
 
-    secondquery = make_query('twob', 'esohlberg', '1')
+    secondquery = make_query('twob', cnetid, '1')
     firstpiece = secondquery[0:16]
     ciphertext = firstpiece + lastpiece
 
-    result = make_query('twoc', 'esohlberg', ciphertext)
+    result = make_query('twoc', cnetid, ciphertext)
     print(str(result, errors = 'replace'))
     return result
 
@@ -163,7 +163,33 @@ def problem2(cnetid):
 ################################################################################
 
 def problem3(cnetid):
-    return b''
+    answerbytes = []
+    zeroquery = []
+    for i in range(0, 47):
+        zeroquery.append(b'\x00')
+    bytesleft = 2
+    while bytesleft:
+        allbytecounter = 0
+        savedblocks = {}
+        realblock = make_query('three', cnetid, b''.join(zeroquery))
+        realblock = realblock[0:48]
+        while allbytecounter < 256:
+            currtestbyte = bytes([allbytecounter])
+            freshquery = zeroquery + [currtestbyte]
+            forsavedblocks = make_query('three', cnetid, b''.join(freshquery))
+            if forsavedblocks[0:48] == realblock:
+                realbyte = currtestbyte
+                allbytecounter = 246
+            allbytecounter += 1
+        zeroquery = zeroquery[1:]
+        zeroquery.append(realbyte)
+        answerbytes.append(realbyte)
+        bytesleft -= 1
+    answerbytestring = b''.join(answerbytes)
+    zeroquery = b''.join(zeroquery)
+    print(zeroquery)
+    print(str(answerbytestring, errors = 'replace'))
+    return answerbytestring
 
 
 ################################################################################
