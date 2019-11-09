@@ -68,7 +68,7 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = True
+    DEBUG = False
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -89,13 +89,56 @@ def make_query(task, cnetid, query):
         return answer
     return None
 
+def make_query_quiet(task, cnetid, query):
+    DEBUG = True
+    if (type(query) is bytearray) or (type(query) is bytes):
+        url = PPS2SERVER + urllib.parse.quote_plus(task) + "/" + urllib.parse.quote_plus(cnetid) + "/" + urllib.parse.quote_plus(base64.urlsafe_b64encode(query)) + "/"
+    else:
+        url = PPS2SERVER + urllib.parse.quote_plus(task) + "/" + urllib.parse.quote_plus(cnetid) + "/" + urllib.parse.quote_plus(base64.urlsafe_b64encode(query.encode('utf-8'))) + "/"
+    with urllib.request.urlopen(url) as response:
+        raw_answer = response.read()
+        answer = base64.urlsafe_b64decode(raw_answer)
+        return answer
+    return None
+
 
 ################################################################################
 # Problem 1 SOLUTION
 ################################################################################
 
 def problem1(cnetid):
-    return b''
+    zerobyte = '\x00'
+    querystring = ''
+    for i in range(0, 30):
+        querystring += zerobyte
+    originalquerystring = querystring
+
+    listofdicts = []
+    for i in range(0, 20):
+        listofdicts.append({})
+    for z in range(0, 200):
+        querystring = originalquerystring
+        for i in range(0, 20):
+            bytesstring = make_query('one', cnetid, querystring)
+            querystring = querystring[0:-1]
+            bytesaray = list(bytesstring)
+            if bytesstring[30] in listofdicts[i]:
+                listofdicts[i][bytesstring[30]] += 1
+            else:
+                listofdicts[i][bytesstring[30]] = 1
+
+    answerbytes = []
+    for i in range(0, 20):
+        maxnum = 0
+        maxbyte = None
+        for key, value in listofdicts[i].items():
+            if value > maxnum:
+                maxnum = value
+                maxbyte = key
+        answerbytes.append(maxbyte)
+    c = bytes(answerbytes)
+    print(str(c, errors = 'replace'))
+    return c
 
 
 ################################################################################
