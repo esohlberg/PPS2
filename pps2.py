@@ -68,7 +68,7 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = False
+    DEBUG = True
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -200,7 +200,51 @@ def problem3(cnetid):
 ################################################################################
 
 def problem4(cnetid):
-    return b''
+    zeroquery = b''
+    for i in range(0, 32):
+        zeroquery += b'\x00'
+    secondquery = make_query('fourb', cnetid, zeroquery)
+    p1 = secondquery[0:16]
+    p2 = secondquery[16:]
+    k =[]
+    for i in range(0, 16):
+        k.append(p1[i] ^ p2[i])
+    
+    cipher = AES.new(bytes(k), AES.MODE_ECB)
+    
+    padded = cmsc284padbytes(b'let me in please')
+    print(cmsc284checkpadding(padded))
+
+    encryptedanswer = b''
+
+    firstAESInput = []
+    for i in range(0, 16):
+        firstAESInput.append(k[i] ^ padded[i])
+    encryptedanswer += cipher.encrypt(bytes(firstAESInput))
+    
+    secondAESInput = []
+    for i in range(0, 16):
+        secondAESInput.append(firstAESInput[i] ^ padded[i + 16])
+    encryptedanswer += cipher.encrypt(bytes(secondAESInput))
+
+    secquery = make_query('fourb', cnetid, encryptedanswer)
+    print(str(secquery, errors ='replace'))
+
+    print(len(padded))
+    thirdquery = make_query('fourc', cnetid, encryptedanswer)
+
+    print(thirdquery)
+    '''
+    target16 = 'this is a test m'
+    print(len(target16))
+    firstquery = make_query('foura', cnetid, '+')
+    firstquerylist = list(bytes(firstquery))
+    print(len(firstquerylist))
+    firstquerylist[len(firstquerylist) - 1] = 0
+    print(firstquerylist)
+    secondquery = make_query('fourb', cnetid, bytes(firstquerylist))
+    '''
+    return thirdquery
 
 
 ################################################################################
