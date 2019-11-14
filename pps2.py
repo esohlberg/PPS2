@@ -253,6 +253,41 @@ def problem4(cnetid):
 ################################################################################
 
 def problem5(cnetid):
+    firstquery = make_query('fivea', cnetid, '')
+    
+    firstblock = list(firstquery[:16])
+    midblock = list(firstquery[-32:-16])
+    lastblock = list(firstquery[-16:])
+    secondquery = make_query('fiveb', cnetid, firstquery)
+    flag = []
+    num = 0
+    firstencrypt = []
+    while num < 4:
+        holdblock = midblock
+        i = 0
+        j = len(firstencrypt)
+        while i < len(firstencrypt):
+            holdblock[-(i + 1)] = firstencrypt[i] ^ j ^ (j + 1)
+            j -= 1
+            i += 1
+        target = 15 - num
+        for y in range(0, 256):
+            holdblock[target] = y
+            hold = holdblock[target]
+            tryblock = firstblock + holdblock + lastblock
+            attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
+            if attemptquery == b'true':
+                break
+        print(y)
+        firstencrypt.append(hold)
+        flag.append(hold ^ 1 ^ midblock[target])
+        num += 1
+    print(bytes(flag))
+        
+
+
+
+
     return b''
 
 ################################################################################
