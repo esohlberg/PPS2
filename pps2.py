@@ -220,11 +220,12 @@ def problem4(cnetid):
     firstAESInput = []
     for i in range(0, 16):
         firstAESInput.append(k[i] ^ padded[i])
-    encryptedanswer += cipher.encrypt(bytes(firstAESInput))
+    encryptfirst = cipher.encrypt(bytes(firstAESInput))
+    encryptedanswer += encryptfirst
     
     secondAESInput = []
     for i in range(0, 16):
-        secondAESInput.append(firstAESInput[i] ^ padded[i + 16])
+        secondAESInput.append(encryptfirst[i] ^ padded[i + 16])
     encryptedanswer += cipher.encrypt(bytes(secondAESInput))
 
     secquery = make_query('fourb', cnetid, encryptedanswer)
