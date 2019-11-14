@@ -247,6 +247,29 @@ def problem5(cnetid):
     lastblock = list(firstquery[-16:])
 
     flag = []
+    
+    num = 0
+    firstencrypt = []
+    while num < 16:
+        holdblock = midblock[:]
+        i = 0
+        j = len(firstencrypt)
+        while i < len(firstencrypt):
+            firstencrypt[i] = firstencrypt[i] ^ j ^ (j + 1)
+            holdblock[-(i + 1)] = firstencrypt[i]
+            j -= 1
+            i += 1
+        target = 15 - num
+        for y in range(0, 256):
+            holdblock[target] = y
+            hold = y
+            tryblock = firstblock[:] + holdblock[:] + lastblock[:]
+            attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
+            if attemptquery == b'true':
+                break
+        firstencrypt.append(hold)
+        flag = [(hold ^ 1 ^ midblock[target])] + flag
+        num += 1
 
     num = 0
     firstencrypt = []
@@ -271,10 +294,10 @@ def problem5(cnetid):
         firstencrypt.append(hold)
         flag = [(hold ^ 1 ^ firstblock[target])] + flag
         num += 1
-
-    print(bytes(flag))
+    
+    print(bytes(flag[:-7]))
         
-    return b''
+    return bytes(flag[:-7])
 
 ################################################################################
 # Problem 6 SOLUTION
