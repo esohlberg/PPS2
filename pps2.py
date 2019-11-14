@@ -68,7 +68,7 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = True
+    DEBUG = False
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -213,7 +213,6 @@ def problem4(cnetid):
     cipher = AES.new(bytes(k), AES.MODE_ECB)
     
     padded = cmsc284padbytes(b'let me in please')
-    print(cmsc284checkpadding(padded))
 
     encryptedanswer = b''
 
@@ -229,22 +228,10 @@ def problem4(cnetid):
     encryptedanswer += cipher.encrypt(bytes(secondAESInput))
 
     secquery = make_query('fourb', cnetid, encryptedanswer)
-    print(str(secquery, errors ='replace'))
 
-    print(len(padded))
     thirdquery = make_query('fourc', cnetid, encryptedanswer)
 
-    print(thirdquery)
-    '''
-    target16 = 'this is a test m'
-    print(len(target16))
-    firstquery = make_query('foura', cnetid, '+')
-    firstquerylist = list(bytes(firstquery))
-    print(len(firstquerylist))
-    firstquerylist[len(firstquerylist) - 1] = 0
-    print(firstquerylist)
-    secondquery = make_query('fourb', cnetid, bytes(firstquerylist))
-    '''
+    print(str(thirdquery, errors='replace'))
     return thirdquery
 
 
@@ -253,41 +240,40 @@ def problem4(cnetid):
 ################################################################################
 
 def problem5(cnetid):
-    firstquery = make_query('fivea', cnetid, '')
+    firstquery = make_query_quiet('fivea', cnetid, '')
     
     firstblock = list(firstquery[:16])
     midblock = list(firstquery[-32:-16])
     lastblock = list(firstquery[-16:])
-    secondquery = make_query('fiveb', cnetid, firstquery)
+
     flag = []
+
     num = 0
     firstencrypt = []
-    while num < 4:
-        holdblock = midblock
+    while num < 16:
+        holdblock = firstblock[:]
         i = 0
         j = len(firstencrypt)
         while i < len(firstencrypt):
-            holdblock[-(i + 1)] = firstencrypt[i] ^ j ^ (j + 1)
+            firstencrypt[i] = firstencrypt[i] ^ j ^ (j + 1)
+            holdblock[-(i + 1)] = firstencrypt[i]
             j -= 1
             i += 1
         target = 15 - num
         for y in range(0, 256):
-            holdblock[target] = y
-            hold = holdblock[target]
-            tryblock = firstblock + holdblock + lastblock
-            attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
-            if attemptquery == b'true':
-                break
-        print(y)
+            if y != firstblock[target]:
+                holdblock[target] = y
+                hold = y
+                tryblock = holdblock[:] + midblock[:]
+                attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
+                if attemptquery == b'true':
+                    break
         firstencrypt.append(hold)
-        flag.append(hold ^ 1 ^ midblock[target])
+        flag = [(hold ^ 1 ^ firstblock[target])] + flag
         num += 1
+
     print(bytes(flag))
         
-
-
-
-
     return b''
 
 ################################################################################
