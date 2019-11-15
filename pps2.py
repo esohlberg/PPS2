@@ -5,6 +5,7 @@ import base64
 import random
 import os
 import zlib
+from string import ascii_letters, digits
 
 ################################################################################
 # CS 284 Padding Utility Functions
@@ -89,19 +90,6 @@ def make_query(task, cnetid, query):
         return answer
     return None
 
-def make_query_quiet(task, cnetid, query):
-    DEBUG = True
-    if (type(query) is bytearray) or (type(query) is bytes):
-        url = PPS2SERVER + urllib.parse.quote_plus(task) + "/" + urllib.parse.quote_plus(cnetid) + "/" + urllib.parse.quote_plus(base64.urlsafe_b64encode(query)) + "/"
-    else:
-        url = PPS2SERVER + urllib.parse.quote_plus(task) + "/" + urllib.parse.quote_plus(cnetid) + "/" + urllib.parse.quote_plus(base64.urlsafe_b64encode(query.encode('utf-8'))) + "/"
-    with urllib.request.urlopen(url) as response:
-        raw_answer = response.read()
-        answer = base64.urlsafe_b64decode(raw_answer)
-        return answer
-    return None
-
-
 ################################################################################
 # Problem 1 SOLUTION
 ################################################################################
@@ -137,7 +125,6 @@ def problem1(cnetid):
                 maxbyte = key
         answerbytes.append(maxbyte)
     c = bytes(answerbytes)
-    print(str(c, errors = 'replace'))
     return c
 
 
@@ -154,7 +141,6 @@ def problem2(cnetid):
     ciphertext = firstpiece + lastpiece
 
     result = make_query('twoc', cnetid, ciphertext)
-    print(str(result, errors = 'replace'))
     return result
 
 
@@ -191,7 +177,6 @@ def problem3(cnetid):
         answerbytes.append(realbyte)
         bytesleft -= 1
     answerbytestring = b''.join(answerbytes)
-    print(str(answerbytestring, errors = 'replace'))
     return answerbytestring
 
 
@@ -231,7 +216,6 @@ def problem4(cnetid):
 
     thirdquery = make_query('fourc', cnetid, encryptedanswer)
 
-    print(str(thirdquery, errors='replace'))
     return thirdquery
 
 
@@ -240,7 +224,7 @@ def problem4(cnetid):
 ################################################################################
 
 def problem5(cnetid):
-    firstquery = make_query_quiet('fivea', cnetid, '')
+    firstquery = make_query('fivea', cnetid, '')
     
     firstblock = list(firstquery[:16])
     midblock = list(firstquery[-32:-16])
@@ -264,7 +248,7 @@ def problem5(cnetid):
             holdblock[target] = y
             hold = y
             tryblock = firstblock[:] + holdblock[:] + lastblock[:]
-            attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
+            attemptquery = make_query('fiveb', cnetid, bytes(tryblock))
             if attemptquery == b'true':
                 break
         firstencrypt.append(hold)
@@ -288,14 +272,13 @@ def problem5(cnetid):
                 holdblock[target] = y
                 hold = y
                 tryblock = holdblock[:] + midblock[:]
-                attemptquery = make_query_quiet('fiveb', cnetid, bytes(tryblock))
+                attemptquery = make_query('fiveb', cnetid, bytes(tryblock))
                 if attemptquery == b'true':
                     break
         firstencrypt.append(hold)
         flag = [(hold ^ 1 ^ firstblock[target])] + flag
         num += 1
     
-    print(bytes(flag[:-7]))
         
     return bytes(flag[:-7])
 
@@ -304,35 +287,34 @@ def problem5(cnetid):
 ################################################################################
 
 def problem6(cnetid):
-    return b''
+    flag = []
+    for i in (ascii_letters + digits + ';'):
+        firstquery = make_query('six', cnetid, 'password=' + i)
+        if len(firstquery) == 62:
+            flag.append(i)
+            break
 
+    while flag[-1] != ';':
+        for i in (ascii_letters + digits + ';'):
+            tryflag = ''
+            for s in flag:
+                tryflag += s
+            tryflag += i
+            firstquery = make_query('six', cnetid, 'password=' + tryflag)
+            if len(firstquery) == 62:
+                flag.append(i)
+                break
+    flag = flag[:-1]
+    answer = ''
+    for c in flag:
+        answer += c
+    answer = bytes(answer, 'utf-8')
+    return answer
 
 if __name__ == "__main__":
-    # your driver code for testing here
-
-    # example running AES; delete the code below here
-    key = b'ABCDEFGHABCDEFGH'
-    block1 = b'abcdefghabcdefgh'
-    block2 = bytearray(b'abcdefghabcdefgh')
-
-    # we declare the mode to be ECB but can just it or single-block calls to
-    # AES
-    cipher = AES.new(key, AES.MODE_ECB)
-    print(cipher.encrypt(block1))
-
-    # the following call with fail without the converting block2 to bytes the
-    # call to AES. The AES implementation requires an immutable object and
-    # bytearray is mutable. Same goes for key.
-    print(cipher.encrypt(bytes(block2)))
-
-    # test query, will hang if off campus
-    # print(make_query('one','davidcash', ''))
-
-    # bytearrays are mutable, which is handy
-    print(block2)
-    block2.extend([0])
-    print(block2)
-    block2.extend(block1)
-    block2 = bytearray('abcdefghabcdefgh')
-    print(block2)
-
+    print(problem1('esohlberg'))
+    print(problem2('esohlberg'))
+    print(problem3('esohlberg'))
+    print(problem4('esohlberg'))
+    print(problem5('esohlberg'))
+    print(problem6('esohlberg'))
